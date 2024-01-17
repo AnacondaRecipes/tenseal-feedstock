@@ -1,33 +1,34 @@
-From 7049ee5a2dd94b2c9fd9b7bd50aca48eba989aa0 Mon Sep 17 00:00:00 2001
+From bf0d2b7a87d801cca559721b30765ca6a9ced792 Mon Sep 17 00:00:00 2001
 From: Jean-Christophe Morin <jcmorin@anaconda.com>
 Date: Tue, 16 Jan 2024 18:20:44 -0500
 Subject: [PATCH] Unvendor dependencies
 
 ---
- CMakeLists.txt       |  5 ++--
+ CMakeLists.txt       |  6 ++---
  cmake/protobuf.cmake | 62 +++++---------------------------------------
- cmake/tenseal.cmake  | 10 ++++---
+ cmake/tenseal.cmake  |  8 +++---
  cmake/tests.cmake    |  9 ++-----
- 4 files changed, 16 insertions(+), 70 deletions(-)
+ 4 files changed, 15 insertions(+), 70 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 92f4c72..6da61fd 100644
+index 92f4c72..709e838 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -14,9 +14,8 @@ if(WIN32)
+@@ -14,9 +14,9 @@ if(WIN32)
    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
  endif()
  
 -include(cmake/seal.cmake)
-+find_package(seal REQUIRED)
++find_package(SEAL REQUIRED)
  include(cmake/protobuf.cmake)
 -include(cmake/pybind11.cmake)
 -include(cmake/xtensor.cmake)
++find_package(xtensor REQUIRED)
 +find_package(pybind11 REQUIRED)
  include(cmake/tenseal.cmake)
  include(cmake/tests.cmake)
 diff --git a/cmake/protobuf.cmake b/cmake/protobuf.cmake
-index 2f1517c..30be9fb 100644
+index 2f1517c..30cb498 100644
 --- a/cmake/protobuf.cmake
 +++ b/cmake/protobuf.cmake
 @@ -1,54 +1,5 @@
@@ -108,23 +109,21 @@ index 2f1517c..30be9fb 100644
  
  add_library(tenseal_proto ${PROTO_SOURCES})
 -target_link_libraries(tenseal_proto INTERFACE ${Protobuf_LIBRARIES})
-+target_link_libraries(tenseal_proto INTERFACE Protobuf)
++target_link_libraries(tenseal_proto INTERFACE protobuf)
 diff --git a/cmake/tenseal.cmake b/cmake/tenseal.cmake
-index 86a9210..3a83eb3 100644
+index 86a9210..4d57794 100644
 --- a/cmake/tenseal.cmake
 +++ b/cmake/tenseal.cmake
-@@ -24,10 +24,12 @@ set(SOURCES
+@@ -24,10 +24,10 @@ set(SOURCES
  add_library(tenseal SHARED ${SOURCES})
  pybind11_add_module(_tenseal_cpp ${SEALAPI_SOURCES} ${SOURCES} ${TENSEAL_BASEDIR}/binding.cpp)
  
 -target_include_directories(_tenseal_cpp PUBLIC ${com_xtensorstack_xtensor_INCLUDE_DIRS})
-+find_package(xtensor REQUIRED)
++target_include_directories(_tenseal_cpp PUBLIC xtensor)
  
 -target_link_libraries(_sealapi_cpp PRIVATE seal)
 -target_link_libraries(_tenseal_cpp PRIVATE seal xtensor)
 -target_link_libraries(tenseal PRIVATE seal xtensor)
-+target_include_directories(_tenseal_cpp PUBLIC xtensor)
-+
 +target_link_libraries(_sealapi_cpp PRIVATE SEAL::seal)
 +target_link_libraries(_tenseal_cpp PRIVATE SEAL::seal xtensor)
 +target_link_libraries(tenseal PRIVATE SEAL::seal xtensor)

@@ -10,6 +10,7 @@ source:
   sha256: d3c086836200c45ad6b9ac0a149b535aa3bc5dd5dac8d1bf5f8fe1706e234623
   patches:
     - patches/0001-unvendor-deps.patch
+    - patches/0002-Fix-windows-build.patch  # [win]
 
 build:
   number: 0
