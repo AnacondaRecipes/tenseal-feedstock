@@ -1,23 +1,28 @@
-From bf0d2b7a87d801cca559721b30765ca6a9ced792 Mon Sep 17 00:00:00 2001
+From cf16f825152ecbffde58919dac14a15d9eaf1b4d Mon Sep 17 00:00:00 2001
 From: Jean-Christophe Morin <jcmorin@anaconda.com>
-Date: Tue, 16 Jan 2024 18:20:44 -0500
+Date: Thu, 18 Jan 2024 13:49:54 -0500
 Subject: [PATCH] Unvendor dependencies
 
 ---
- CMakeLists.txt       |  6 ++---
- cmake/protobuf.cmake | 62 +++++---------------------------------------
- cmake/tenseal.cmake  |  8 +++---
+ CMakeLists.txt       | 11 +++------
+ cmake/protobuf.cmake | 57 +++-----------------------------------------
+ cmake/tenseal.cmake  | 12 ++++++----
  cmake/tests.cmake    |  9 ++-----
- 4 files changed, 15 insertions(+), 70 deletions(-)
+ 4 files changed, 16 insertions(+), 73 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 92f4c72..709e838 100644
+index 92f4c72..94226a6 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -14,9 +14,9 @@ if(WIN32)
-   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
- endif()
+@@ -9,14 +9,9 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+ include_directories(${CMAKE_CURRENT_BINARY_DIR})
  
+-if(WIN32)
+-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+-endif()
+-
 -include(cmake/seal.cmake)
 +find_package(SEAL REQUIRED)
  include(cmake/protobuf.cmake)
@@ -28,10 +33,10 @@ index 92f4c72..709e838 100644
  include(cmake/tenseal.cmake)
  include(cmake/tests.cmake)
 diff --git a/cmake/protobuf.cmake b/cmake/protobuf.cmake
-index 2f1517c..30cb498 100644
+index 2f1517c..2c473a0 100644
 --- a/cmake/protobuf.cmake
 +++ b/cmake/protobuf.cmake
-@@ -1,54 +1,5 @@
+@@ -1,54 +1,4 @@
 -include(FetchContent)
 -
 -set(Protobuf_USE_STATIC_LIBS ON)
@@ -84,19 +89,12 @@ index 2f1517c..30cb498 100644
 -include(${Protobuf_DIR}/protobuf-options.cmake)
 -include(${Protobuf_DIR}/protobuf-targets.cmake)
 +find_package(Protobuf REQUIRED)
-+find_program(protoc protoc REQUIRED)
  
  if(Protobuf_FOUND)
    message(STATUS "Protobuf version : ${Protobuf_VERSION}")
-@@ -69,12 +20,11 @@ include_directories(${Protobuf_INCLUDE_DIRS})
- set(PROTO_ROOT ${CMAKE_SOURCE_DIR}/tenseal/proto)
- 
- execute_process(
--  COMMAND ${Protobuf_PROTOC_EXECUTABLE} --proto_path=${PROTO_ROOT}/
-+  COMMAND ${protoc} --proto_path=${PROTO_ROOT}/
+@@ -73,8 +23,7 @@ execute_process(
            --cpp_out=${PROTO_ROOT}/ ${PROTO_ROOT}/tensealcontext.proto
--  COMMAND ${Protobuf_PROTOC_EXECUTABLE} --proto_path=${PROTO_ROOT}/
-+  COMMAND ${protoc} --proto_path=${PROTO_ROOT}/
+   COMMAND ${Protobuf_PROTOC_EXECUTABLE} --proto_path=${PROTO_ROOT}/
            --cpp_out=${PROTO_ROOT}/ ${PROTO_ROOT}/tensors.proto
 -  RESULT_VARIABLE result
 -  WORKING_DIRECTORY ${Protobuf_ROOT})
@@ -104,17 +102,28 @@ index 2f1517c..30cb498 100644
  if(result)
    message(FATAL_ERROR "Failed to install protobuf (${result})!")
  endif()
-@@ -84,4 +34,4 @@ set(PROTO_SOURCES ${PROTO_ROOT}/tensealcontext.pb.cc
+@@ -84,4 +33,4 @@ set(PROTO_SOURCES ${PROTO_ROOT}/tensealcontext.pb.cc
                    ${PROTO_ROOT}/tensors.pb.cc)
  
  add_library(tenseal_proto ${PROTO_SOURCES})
 -target_link_libraries(tenseal_proto INTERFACE ${Protobuf_LIBRARIES})
-+target_link_libraries(tenseal_proto INTERFACE protobuf)
++target_link_libraries(tenseal_proto INTERFACE protobuf::libprotobuf)
 diff --git a/cmake/tenseal.cmake b/cmake/tenseal.cmake
-index 86a9210..4d57794 100644
+index 86a9210..c7f4125 100644
 --- a/cmake/tenseal.cmake
 +++ b/cmake/tenseal.cmake
-@@ -24,10 +24,10 @@ set(SOURCES
+@@ -1,6 +1,10 @@
+ set(TENSEAL_BASEDIR tenseal)
+ set(SEALAPI_BASEDIR tenseal/sealapi)
+ 
++if(MSVC)
++    add_definitions(-DPROTOBUF_USE_DLLS)
++endif()
++
+ set(SEALAPI_SOURCES
+     ${SEALAPI_BASEDIR}/sealapi.cpp
+     ${SEALAPI_BASEDIR}/sealapi_evaluator.cpp
+@@ -24,10 +28,10 @@ set(SOURCES
  add_library(tenseal SHARED ${SOURCES})
  pybind11_add_module(_tenseal_cpp ${SEALAPI_SOURCES} ${SOURCES} ${TENSEAL_BASEDIR}/binding.cpp)
  
