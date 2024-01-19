@@ -47,9 +47,11 @@ test:
   source_files:
     - tests/python
     - tests/__init__.py
+    - pytest.ini
   imports:
     - tenseal
     - tenseal.sealapi
+    - tenseal.tensors
   commands:
     - pip check
     - pytest -v tests/python/sealapi tests/python/tenseal -m "not slow"
