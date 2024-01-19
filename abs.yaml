@@ -1,9 +1,2 @@
 upload_channels:
   - sfe1ed40
-
-channels:
-  - https://staging.continuum.io/prefect/fs/seal-feedstock/pr1/53c1450
-  - https://staging.continuum.io/prefect/fs/ms-gsl-feedstock/pr1/a7d2134
-  - https://staging.continuum.io/prefect/fs/xtensor-feedstock/pr1/191430d
-  - https://staging.continuum.io/prefect/fs/xtl-feedstock/pr1/518ad4c
-  - https://staging.continuum.io/prefect/fs/xsimd-feedstock/pr8/332ca41
